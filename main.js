@@ -9,6 +9,7 @@ const operatorListe = document.querySelectorAll(".operator")
 const display = document.getElementById("display");
 const equals = document.getElementById("equals");
 const clear = document.getElementById("clear");
+const backspace = document.getElementById("backspace");
 
 let clearDisplay = false;
 
@@ -25,6 +26,10 @@ function multiply(firstNumber, secondNumber) {
 }
 
 function divide(firstNumber, secondNumber) {
+    if (secondNumber === 0) {
+        display.textContent = "Error :(";
+        return "Error :(";
+    }
     return firstNumber / secondNumber;
 }
 
@@ -44,9 +49,6 @@ function operate(operator, firstNumber, secondNumber) {
     else if (operator === "/") {
         return divide(firstNumber, secondNumber);
     }
-
-
-
 }
 
 let currentStep = 1;
@@ -57,6 +59,11 @@ numberListe.forEach(numberButton => {
             display.textContent = "";
             clearDisplay = false;
         }
+
+        if (event.target.textContent === "." && display.textContent.includes(".")) {
+            return;
+        }
+
         const clickedNumber = event.target.textContent;
         display.textContent += clickedNumber;
     });
@@ -64,12 +71,19 @@ numberListe.forEach(numberButton => {
 
 operatorListe.forEach(operatorButton => {
     operatorButton.addEventListener("click", (event) => {
+        if (clearDisplay === true && values.operator !== null) {
+            values.operator = event.target.textContent;
+            return;
+        }
+
         if (values.firstNumber !== null && values.operator !== null) {
             values.secondNumber = Number(display.textContent);
             const result = operate(values.operator, values.firstNumber, values.secondNumber);
-            display.textContent = result;
+            const roundedResult = parseFloat(result.toFixed(5));
 
-            values.firstNumber = result;
+            display.textContent = roundedResult;
+
+            values.firstNumber = roundedResult;
         } else {
             values.firstNumber = Number(display.textContent);
 
@@ -102,6 +116,15 @@ equals.addEventListener("click", (event) => {
 
     values.secondNumber = Number(display.textContent);
     const result = operate(values.operator, values.firstNumber, values.secondNumber);
+    if (result === "Error :(") {
+        display.textContent = result;
+        values.firstNumber = null;
+        values.secondNumber = null;
+        values.operator = null;
+        clearDisplay = true;
+        return;
+    }
+
     const roundedResult = parseFloat(result.toFixed(5));
 
     display.textContent = roundedResult;
@@ -110,6 +133,41 @@ equals.addEventListener("click", (event) => {
     values.firstNumber = roundedResult;
 
     clearDisplay = true;
+});
 
+backspace.addEventListener("click", (event) => {
+    display.textContent = display.textContent.slice(0, -1);
+});
 
+window.addEventListener("keydown", (event) => {
+    const key = event.key;
+
+    if ((key >= "0" && key <= "9" || key === ".")) {
+        numberListe.forEach(button => {
+            if (button.textContent === key) {
+                button.click();
+            }
+        });
+    }
+
+    if ((key === "+" || key === "-" || key === "*" || key === "/")) {
+        operatorListe.forEach(button => {
+            if (button.textContent === key) {
+                button.click();
+            }
+        });
+    }
+
+    if ((key === "Enter" || key === "=")) {
+        event.preventDefault();
+        equals.click();
+    }
+
+    if (key === "Escape") {
+        clear.click();
+    }
+
+    if (key === "Backspace") {
+        backspace.click();
+    }
 });
